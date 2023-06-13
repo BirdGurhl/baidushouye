@@ -1,5 +1,5 @@
 <template>
-  <div class='container'>
+  <div class='container' ref="root" @scroll="onScroll($event)">
     <div class="top-container">
       <div class="header">
         <van-icon name="user-circle-o" @click="show = true" />
@@ -18,52 +18,46 @@
       </div>
       <div class="divider"></div>
     </div>
-    <van-pull-refresh v-model="isLoading" @refresh="onRefresh">
-      <van-tabs v-model="active" sticky line-height="2px" title-inactive-color="#666" title-active-color="#38f"
-        color="#38f">
-        <van-tab v-for="tab in tabs" :title="tab">
-          <div class="content-container">
-            <ul class="content">
-              <li v-for="(item, index) in content" :key="index">
-                <!-- 无图/三图及以上，内容纵向排列 -->
-                <a v-if="item.img.length >= 3 || item.img.length == 0" href="https://www.baidu.com/#" class="column"
-                  :class="{ check: item.check, 'top-text': item.default }">
-                  <p class="title">{{ item.title }}</p>
-                  <div class="pic" v-if="item.img.length >= 3">
-                    <img v-for="num in 3" :key="num" :src="item.img[num - 1]">
-                  </div>
-                  <p class="author"><span v-if="item.default">置顶</span>{{ item.author }}<van-icon v-if="!item.default"
-                      name="close" @click="close(index,$event)"/></p>
-                </a>
+    <div class="content-container">
+      <div class="navs" v-show="navShow">
+        <ul>
+          <li v-for="(nav, index) in tabs" :class="{ active: index == active }">{{ nav }}</li>
+          <li class="add">+</li>
+        </ul>
+      </div>
+      <ul class="content">
+        <li v-for="(item, index) in content" :key="index">
 
+          <!-- 无图/三图及以上，内容纵向排列 -->
+          <a v-if="item.img.length >= 3 || item.img.length == 0" href="#" class="column"
+            :class="{ check: item.check, 'top-text': item.default }">
+            <p class="title">{{ item.title }}</p>
+            <div class="pic" v-if="item.img.length >= 3">
+              <img v-for="num in 3" :key="num" :src="item.img[num - 1]">
+            </div>
+            <p class="author"><span v-if="item.default">置顶</span>{{ item.author }}<img :src="require('@/assets/叉叉.png')"
+                v-if="!item.default" name="close" @click="close(index, $event)" /></p>
+          </a>
 
-                <!-- 一张图，内容横向排列 -->
-                <a v-if="item.img.length < 3 && item.img.length > 0" href="https://www.baidu.com/#" class="row"
-                  :class="{ check: item.check, 'top-text': item.default }">
-                  <div class="pic">
-                    <img :src="item.img[0]">
-                    <div class="video" v-if="item.video">
-                      <img :src="require('@/assets/播放2.png')">
-                      <span>{{ item.video }}</span>
-                    </div>
-                  </div>
-                  <div class="right-text-content">
-                    <p class="title">{{ item.title }}</p>
-                    <p class="author"><span>{{ item.author }}</span><van-icon name="close" @click="close(index,$event)"/></p>
-                  </div>
-                </a>
-
-
-              </li>
-
-            </ul>
-          </div>
-        </van-tab>
-        <van-icon name="add" color="white" />
-
-      </van-tabs>
-
-    </van-pull-refresh>
+          <!-- 一张图，内容横向排列 -->
+          <a v-if="item.img.length < 3 && item.img.length > 0" href="#" class="row"
+            :class="{ check: item.check, 'top-text': item.default }">
+            <div class="pic">
+              <img :src="item.img[0]">
+              <div class="video" v-if="item.video">
+                <img :src="require('@/assets/播放2.png')">
+                <span>{{ item.video }}</span>
+              </div>
+            </div>
+            <div class="right-text-content">
+              <p class="title">{{ item.title }}</p>
+              <p class="author"><span>{{ item.author }}</span><img :src="require('@/assets/叉叉.png')" name="close"
+                  @click="close(index, $event)" /></p>
+            </div>
+          </a>
+        </li>
+      </ul>
+    </div>
 
     <van-overlay :show="show" @click="show = false">
       <div class="overlay">
@@ -95,14 +89,13 @@
 </template>
 
 <script>
-import { Toast } from 'vant'
-
 export default {
   name: '',
   data() {
     return {
-      show: false,
 
+      show: false,
+      navShow: false,
       isLoading: false,
 
       active: 0,
@@ -127,15 +120,6 @@ export default {
           author: '农民日报',
           default: false,
           img: [],
-          check: false
-        },
-        {
-          title: '国际锐评丨美官员轮番上阵，挡不住中东和解的步伐',
-          author: '央视新闻',
-          default: false,
-          img: [
-            'https://t11.baidu.com/it/app=106&f=JPEG&fm=30&fmt=auto&q=85&size=f218_146&u=1056497572%2C206203096?w=312&h=208&s=F3B3138D56111BD45821D1A303006001',
-          ],
           check: false
         },
         {
@@ -249,20 +233,24 @@ export default {
   },
   computed: {},
   components: {},
-  created() { },
+  created() {
+
+  },
   mounted() { },
   methods: {
-    onRefresh() {
-      setTimeout(() => {
-        Toast('刷新成功')
-        this.isLoading = false
-
-      }, 1000);
+    onScroll(e) {
+      if (this.$refs.root.scrollTop >= 190) {
+        this.navShow = true
+        console.log(this.$refs.root.scrollTop);
+      } else {
+        this.navShow = false
+      }
+      // console.log(e);
     },
-    close(index,e){
+    close(index, e) {
       e.stopPropagation()
       console.log(e);
-      this.content.splice(index,1)
+      // this.content.splice(index, 1)
     }
   }
 }
@@ -270,6 +258,9 @@ export default {
 <style lang="less" scoped>
 .container {
   width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  overflow-y: scroll;
 
   .overlay {
     height: 100vh;
@@ -475,6 +466,66 @@ export default {
 
 .content-container {
   padding: 0 16px;
+  position: relative;
+
+  .navs {
+    width: 100%;
+    height: 40px;
+    overflow: hidden;
+    // overflow-x: scroll;
+    overflow-x: visible;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 999;
+    transition: all 0.5s;
+
+    ul {
+      font-size: 16px;
+      color: #666;
+      display: flex;
+      background: #f1f1f1;
+      height: 100%;
+      align-items: center;
+
+      li {
+        padding: 0 16px;
+        height: 40px;
+        line-height: 40px;
+        text-align: center;
+        white-space: nowrap;
+        position: relative;
+      }
+
+      li.active {
+        color: #38f;
+      }
+
+      li.active::after {
+        content: '';
+        position: absolute;
+        bottom: 2px;
+        left: 50%;
+        width: 2.5em;
+        transform: translateX(-50%);
+        border-bottom: 2px solid #38f;
+        z-index: 9999;
+      }
+
+      li.add {
+        // padding: 0;
+        position: fixed;
+        right: 0;
+        top: 0;
+        font-size: 20px;
+        z-index: 99999;
+        background: #f1f1f1;
+
+        // width: ;
+      }
+
+    }
+  }
 
   .content {
     li {}
@@ -525,13 +576,13 @@ export default {
 
       }
 
-      .van-icon {
+      img {
         position: absolute;
         right: 0;
         top: -2.5px;
         font-size: 18px;
-        width: 18px;
-        height: 18px;
+        width: 15px;
+        height: 15px;
 
       }
     }
